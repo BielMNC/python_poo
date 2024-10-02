@@ -1,8 +1,8 @@
 import pickle
 from typing import List
 from common import *
-from datetime import date
-
+from Interface_Eleicao import Transparencia
+import csv
 
 class Urna:
     mesario : Pessoa
@@ -41,8 +41,6 @@ class Urna:
         self.__eleitores_presentes.append(eleitor)
         if n_cand in self.__votos:
             self.__votos[n_cand] += 1
-        elif n_cand == 0:
-            self.__votos['BRANCO'] += 1
         else:
             self.__votos['NULO'] += 1
 
@@ -50,20 +48,36 @@ class Urna:
             pickle.dump(self.__votos, arquivo)
 
     def __str__(self):
-        data_atual = date.today()#from datalime import date
-        info = (f'Urna da seção {self.__secao}, zona {self.__zona}\n'
-                f'Mesario {self.mesario}\n')
-        info += f'{data_atual.ctime()}\n'
-
-        for k, v in self.__votos.items():
-            info += f'Candidato {k} = {v} votos\n'
-
+        info =  f'Urna da seção {self.__secao}, zona {self.__zona}\n'
+        info += f'Mesario {self.mesario}\n'
         return info
 
-    def zerisima(self):
-        with open('zerisima' +self.__nome_arquivo, 'wb') as arquivo:
-            pickle.dump(self.__votos, arquivo)
+    def to_csv(self):
+        with open(f'{self.__secao}_{self.__zona}.csv', mode='a', newline= '') as file:
+            writer = csv.writer(file)
+            writer.writerow(['Secção', 'Zona', 'Titulo Eleitor Presente'])
 
-    def encerrar(self):
-        with open('final_'+self.__nome_arquivo, 'wb') as arquivo:
-            pickle.dump(self.__votos, arquivo)
+            for eleitor in self.__eleitores:
+                writer.writerow([self.__secao, self.__zona, eleitor.get_titulo()])
+
+    def to_txt(self):
+        with open(f'{self.__secao}_{self.__zona}.txt', mode ='w') as file:
+            file.write(self.__str__())
+
+            for eleitor in self.__eleitores:
+                file.write(f'{eleitor.get_titulo()}\n')
+
+
+
+
+if __name__ == "__main__":
+
+    c1 = Candidato("Ze do COCO", "12312312", "213123-1", 43)
+    c2 = Candidato("Maria da Feira", "2345545", "21312-2", 34)
+
+    e1 = Eleitor("Jose da Silva", "356777232", "21321138-2", 11232131, 252, 54)
+    e2 = Eleitor("Maria da Silva", "356777232", "12313213131-X", 112321231, 252, 54)
+    mesario = Eleitor ("Joao da silva", "231421", "344214124-8", 123421421, 252, 54)
+    urna = Urna(mesario, 252,54, [c1,c2], [e1, e2])
+    urna.to_csv()
+    urna.to_txt()
